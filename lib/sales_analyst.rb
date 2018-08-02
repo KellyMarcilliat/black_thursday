@@ -295,35 +295,24 @@ class SalesAnalyst
     end
   end
   
-  def merchants_with_only_one_item 
-    merchant_ids_with_only_one_item.map do |merch_id|
-      @merchant_repository.all.reject do |merchant|
-        merchant.id != merch_id 
-      end 
-    end.flatten      
-  end 
-  
-  # helper to merchants_with_only_one_item
-  def merchant_ids_with_only_one_item 
-    merchant_id_item_counter.reject do |merch_id, count|
-      count != 1
-    end.keys
-  end 
-  
-  def merchants_with_only_one_item_registered_in_month(month)
-    merchants_with_only_one_item.find_all do |merchant|
-      merchant.created_at.strftime("%B") == month
-    end
-  end 
-  
   def merchants_ranked_by_revenue 
-    # revenue_by_merchant.sort_by do |merch_id, revenue|
-    #    
-    # end
+    merchant_ids_ranked_by_revenue.map do |merch_id|
+      @merchant_repository.all.find do |merchant|
+        merchant.id == merch_id 
+      end 
+    end 
+  end  
+  
+  def merchant_ids_ranked_by_revenue 
+    merchant_id_revenue_hash.sort_by do |merch_id, revenue|
+      revenue   
+    end.reverse.to_h.keys
   end
   
+  # helper to merchants_ranked_by_revenue
   def merchant_id_revenue_hash 
-    @merchant_repository.all.inject(Hash.new(0)) do |hash, merchant|
+    @merchant_repository.all.inject(Hash.new(BigDecimal(0))) do |hash, merchant|
+      # binding.pry 
       hash.merge(merchant.id => revenue_by_merchant(merchant.id))
     end
   end
@@ -332,8 +321,9 @@ class SalesAnalyst
     revenue_hash_by_merchant_id(merchant_id)[merchant_id]
   end
   
+  # helper to revenue_by_merchant
   def revenue_hash_by_merchant_id(merchant_id)
-    find_all_invoices_paid_in_full.inject(Hash.new(BigDecimal(0))) do |hash, invoice|
+    @revenue_hash ||= find_all_invoices_paid_in_full.inject(Hash.new(BigDecimal(0))) do |hash, invoice|
       hash.merge(invoice.merchant_id => hash[invoice.merchant_id] += invoice_total(invoice.id))
     end
   end
@@ -343,4 +333,26 @@ class SalesAnalyst
       invoice_paid_in_full?(inv.id) == true 
     end 
   end 
+  
+  #helper for pennding invoices
+  def invoices_not_paid
+   @invoice_repository.all.reject do |invoice|
+      invoice_paid_in_full?(invoice.id)
+    end
+  end
+
+  #helper for pending_invoices
+  def pending_ids
+    invoices_not_paid.map do |invoice|
+       invoice.merchant_id
+     end.uniq
+  end
+
+  def merchants_with_pending_invoices
+    pending_ids.map do |merch_id|
+     @merchant_repository.all.reject do |merchant|
+        merchant.id != merch_id
+      end
+    end.flatten
+  end
 end
