@@ -355,4 +355,48 @@ class SalesAnalyst
       end
     end.flatten
   end
+  
+  def merchants_with_only_one_item_registered_in_month(month)
+  merchants_with_only_one_item.find_all do |merchant|
+    merchant.created_at.strftime("%B") == month
+  end
+  
+  def merchants_with_only_one_item 
+    merchant_ids_with_only_one_item.map do |merch_id|
+      @merchant_repository.all.reject do |merchant|
+        merchant.id != merch_id 
+      end 
+    end.flatten  
+  end 
+  
+  # helper to merchants_with_only_one_item
+  def merchant_ids_with_only_one_item 
+    merchant_id_item_counter.reject do |merch_id, count|
+      count != 1
+    end.keys
+  end
+  
+  #helper for pennding invoices
+  def invoices_not_paid
+   @invoice_repository.all.reject do |invoice|
+      invoice_paid_in_full?(invoice.id)
+    end
+  end
+
+  #helper for pending_invoices
+  def pending_ids
+    invoices_not_paid.map do |invoice|
+       invoice.merchant_id
+     end.uniq
+  end
+
+  def merchants_with_pending_invoices
+    pending_ids.map do |merch_id|
+     @merchant_repository.all.reject do |merchant|
+        merchant.id != merch_id
+      end
+    end.flatten
+  end 
+  
+  
 end
