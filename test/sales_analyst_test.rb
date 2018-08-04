@@ -228,9 +228,9 @@ class SalesAnalystTest < Minitest::Test
     assert_equal Invoice, @sales_analyst.invoices_by_date(Time.parse("2009-02-07"))[0].class 
   end 
   
-  def test_invoice_items_by_date
-     assert_equal 21687, @sales_analyst.invoice_items_by_date(Time.parse("2012-03-27")).count
-     assert_equal InvoiceItem, @sales_analyst.invoice_items_by_date(Time.parse("2012-03-27"))[0].class
+  def test_invoices_by_date
+     assert_equal 1, @sales_analyst.invoices_by_date(Time.parse("2009-02-07")).count
+     assert_equal Invoice, @sales_analyst.invoices_by_date(Time.parse("2009-02-07"))[0].class
    end
   
   def test_merchants_with_only_one_item
@@ -248,10 +248,15 @@ class SalesAnalystTest < Minitest::Test
     assert_equal Merchant, @sales_analyst.merchants_with_only_one_item_registered_in_month("June")[0].class
   end
   
+  def test_top_revenue_earners
+    assert_equal 1, @sales_analyst.top_revenue_earners(1).count
+    assert_equal Merchant, @sales_analyst.top_revenue_earners[0].class 
+    assert_equal 20, @sales_analyst.top_revenue_earners.count 
+  end 
+  
   def test_merchants_ranked_by_revenue 
-    p @sales_analyst.merchants_ranked_by_revenue[0]
-    # assert_equal 475, @sales_analyst.merchants_ranked_by_revenue.count
-    # assert_equal Merchant, @sales_analyst.merchants_ranked_by_revenue.class 
+    assert_equal 475, @sales_analyst.merchants_ranked_by_revenue.count
+    assert_equal Merchant, @sales_analyst.merchants_ranked_by_revenue[0].class 
   end 
   
   def test_merchant_ids_ranked_by_revenue 
@@ -261,7 +266,9 @@ class SalesAnalystTest < Minitest::Test
   end 
   
   def test_merchant_id_revenue_hash 
-    p @sales_analyst.merchant_id_revenue_hash 
+    assert_equal Hash, @sales_analyst.merchant_id_revenue_hash.class 
+    assert_equal Fixnum, @sales_analyst.merchant_id_revenue_hash.keys[0].class
+    assert_equal BigDecimal, @sales_analyst.merchant_id_revenue_hash.values[0].class
   end 
   
   def test_revenue_by_merchant
@@ -270,13 +277,13 @@ class SalesAnalystTest < Minitest::Test
   
   def test_revenue_hash_by_merchant
     assert_equal Hash, @sales_analyst.revenue_hash_by_merchant_id(12334194).class
-    assert_equal 471, @sales_analyst.revenue_hash_by_merchant_id(12334194).count 
+    assert_equal 474, @sales_analyst.revenue_hash_by_merchant_id(12334194).count 
   end 
   
   def test_find_all_invoices_paid_in_full 
-    p @sales_analyst.find_all_invoices_paid_in_full.count
-    p @sales_analyst.find_all_invoices_paid_in_full[0].class
-    p @sales_analyst.find_all_invoices_paid_in_full[0]
+    assert_equal 2810, @sales_analyst.find_all_invoices_paid_in_full.count
+    assert_equal Invoice, @sales_analyst.find_all_invoices_paid_in_full[0].class
+    assert_equal Array, @sales_analyst.find_all_invoices_paid_in_full.class
   end
   
   def test_merchants_with_pending_invoices
