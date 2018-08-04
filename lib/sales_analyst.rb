@@ -292,10 +292,15 @@ class SalesAnalyst
  
   #helper to total_revenue_by_date
   def invoices_by_date(date)
-    @sales_engine.invoices.all.find_all do |inv_item| 
-      inv_item.created_at.strftime("%F") == date.strftime("%F")
+    @sales_engine.invoices.all.find_all do |invoice| 
+      invoice.created_at.strftime("%F") == date.strftime("%F")
     end
   end
+  
+  def top_revenue_earners(number = 20)
+    #return x Merchant objects
+    merchants_ranked_by_revenue.to_a[0..number -1]
+  end 
  
   def merchants_ranked_by_revenue 
     merchant_ids_ranked_by_revenue.map do |merch_id|
@@ -318,7 +323,7 @@ class SalesAnalyst
       hash.merge(merchant.id => revenue_by_merchant(merchant.id))
     end
   end
- 
+  
   def revenue_by_merchant(merchant_id)
     revenue_hash_by_merchant_id(merchant_id)[merchant_id]
   end
@@ -341,21 +346,6 @@ class SalesAnalyst
    @invoice_repository.all.reject do |invoice|
       invoice_paid_in_full?(invoice.id)
     end
-  end
- 
-  #helper for pending_invoices
-  def pending_ids
-    invoices_not_paid.map do |invoice|
-       invoice.merchant_id
-     end.uniq
-  end
- 
-  def merchants_with_pending_invoices
-    pending_ids.map do |merch_id|
-     @merchant_repository.all.reject do |merchant|
-        merchant.id != merch_id
-      end
-    end.flatten
   end
   
   def merchants_with_only_one_item_registered_in_month(month)
